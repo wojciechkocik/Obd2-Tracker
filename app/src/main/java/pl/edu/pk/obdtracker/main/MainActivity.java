@@ -1,35 +1,40 @@
-package pl.edu.pk.obdtracker;
+package pl.edu.pk.obdtracker.main;
 
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.hannesdorfmann.mosby3.mvp.MvpActivity;
+
 import lombok.extern.slf4j.Slf4j;
-import pl.edu.pk.obdtracker.bluetooth.BluetoothManager;
+import pl.edu.pk.obdtracker.MyApp;
+import pl.edu.pk.obdtracker.R;
 import pl.edu.pk.obdtracker.bluetooth.ObdBluetoothService;
 
 @Slf4j
-public class MainActivity extends AppCompatActivity
+public class MainActivity extends MvpActivity<MainView, MainPresenter>
         implements NavigationView.OnNavigationItemSelectedListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+//        ((MyApp)getApplication()).getMvpComponent().inject(this);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -56,7 +61,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
                 log.info(name.toString() + " service is bound");
-                ObdBluetoothService bluetoothService = (ObdBluetoothService) service;
+                //ObdBluetoothService bluetoothService = (ObdBluetoothService) service;
 
 //                BluetoothManager.connect()
             }
@@ -66,6 +71,12 @@ public class MainActivity extends AppCompatActivity
                 log.info(name.toString() + " service is unbound");
             }
         }, BIND_AUTO_CREATE);
+    }
+
+    @NonNull
+    @Override
+    public MainPresenter createPresenter() {
+        return ((MyApp)getApplication()).getMvpComponent().mainPresenter();
     }
 
     @Override
