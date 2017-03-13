@@ -1,24 +1,24 @@
 package pl.edu.pk.obdtracker.main;
 
-import android.content.ComponentName;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.IBinder;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.view.View;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.hannesdorfmann.mosby3.mvp.MvpActivity;
+
+import org.greenrobot.eventbus.EventBus;
 
 import javax.inject.Inject;
 
@@ -46,12 +46,14 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter>
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-            if (getPresenter().isServiceBound()) {
-                getPresenter().bluetoothConnect();
-            } else {
-                Snackbar.make(view, "Obd bluetooth service not bound yet", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
+                if (getPresenter().isServiceBound()) {
+                    getPresenter().bluetoothConnect();
+                    new Handler().post(getPresenter().getDataThreadQueue());
+
+                } else {
+                    Snackbar.make(view, "Obd bluetooth service not bound yet", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+                }
             }
         });
 
@@ -129,5 +131,10 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter>
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
     }
 }

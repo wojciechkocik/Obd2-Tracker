@@ -5,9 +5,14 @@ import android.bluetooth.BluetoothDevice;
 import android.content.ComponentName;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.os.Handler;
 import android.os.IBinder;
 
+import com.github.pires.obd.commands.SpeedCommand;
 import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
+
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.IOException;
 
@@ -15,7 +20,10 @@ import javax.inject.Inject;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import pl.edu.pk.obdtracker.MvpAvareBasePresenter;
 import pl.edu.pk.obdtracker.bluetooth.ObdBluetoothService;
+import pl.edu.pk.obdtracker.event.ObdJobEvent;
+import pl.edu.pk.obdtracker.obd.ObdCommandJob;
 
 /**
  * @author Wojciech Kocik
@@ -23,7 +31,8 @@ import pl.edu.pk.obdtracker.bluetooth.ObdBluetoothService;
  */
 
 @Slf4j
-public class MainPresenter extends MvpBasePresenter<MainView> {
+public class MainPresenter extends MvpAvareBasePresenter<MainView> {
+    private static final long OBD_UPDATE_PERIOD = 1;
     private final SharedPreferences sharedPreferences;
 
     @Getter
@@ -36,13 +45,26 @@ public class MainPresenter extends MvpBasePresenter<MainView> {
         this.sharedPreferences = sharedPreferences;
     }
 
+    @Getter
+    private final Runnable dataThreadQueue = new Runnable() {
+        @Override
+        public void run() {
+            queueCommands();
+            new Handler().postDelayed(dataThreadQueue, OBD_UPDATE_PERIOD);
+        }
+    };
+
+    private void queueCommands() {
+        obdBluetoothService.queueJob(new ObdCommandJob(new SpeedCommand()));
+    }
+
     public ServiceConnection serviceConnection() {
         ServiceConnection serviceConnection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
                 log.info(name.toString() + " service is bound");
                 isServiceBound = true;
-                obdBluetoothService = ((ObdBluetoothService.ObdBluetoothServiceBinder)service).getService();
+                obdBluetoothService = ((ObdBluetoothService.ObdBluetoothServiceBinder) service).getService();
                 BluetoothDevice bluetoothDevice = retrieveBluetoothDevice();
                 obdBluetoothService.setBluetoothDevice(bluetoothDevice);
             }
@@ -57,7 +79,7 @@ public class MainPresenter extends MvpBasePresenter<MainView> {
 
     private BluetoothDevice retrieveBluetoothDevice() {
         final BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
-        if(((BluetoothDevice)btAdapter.getBondedDevices().toArray()[2]).getName().equals("KOTMSI")){
+        if (((BluetoothDevice) btAdapter.getBondedDevices().toArray()[2]).getName().equals("KOTMSI")) {
             BluetoothDevice bluetoothDevice = (BluetoothDevice) btAdapter.getBondedDevices().toArray()[2];
             return bluetoothDevice;
 
@@ -74,5 +96,9 @@ public class MainPresenter extends MvpBasePresenter<MainView> {
         }
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onObdJob(ObdJobEvent obdJobEvent) {
+        log.info(obdJobEvent.getObdCommandJob().getObdCommand().getFormattedResult());
+    }
 
 }

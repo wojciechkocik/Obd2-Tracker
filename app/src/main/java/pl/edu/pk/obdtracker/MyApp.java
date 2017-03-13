@@ -2,6 +2,8 @@ package pl.edu.pk.obdtracker;
 
 import android.app.Application;
 
+import org.greenrobot.eventbus.EventBus;
+
 import lombok.Getter;
 
 /**
@@ -37,4 +39,6 @@ public class MyApp extends Application {
                 .bluetoothModule(bluetoothModule)
                 .build();
     }
+
+
 }

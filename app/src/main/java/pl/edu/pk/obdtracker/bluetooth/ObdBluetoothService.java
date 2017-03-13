@@ -20,6 +20,8 @@ import com.github.pires.obd.commands.temperature.AmbientAirTemperatureCommand;
 import com.github.pires.obd.enums.ObdProtocols;
 import com.github.pires.obd.exceptions.UnsupportedCommandException;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -28,6 +30,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.pk.obdtracker.Config;
 import pl.edu.pk.obdtracker.MyApp;
+import pl.edu.pk.obdtracker.event.ObdJobEvent;
 import pl.edu.pk.obdtracker.main.MainActivity;
 import pl.edu.pk.obdtracker.obd.ObdCommandJob;
 
@@ -64,6 +67,10 @@ public class ObdBluetoothService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        try{
+            EventBus.getDefault().register(this);
+        }catch (Exception ignored){}
+
         sharedPreferences = ((MyApp) getApplication()).getServiceComponent().sharedPreferences();
         queueWorkerThread.start();
     }
@@ -73,6 +80,7 @@ public class ObdBluetoothService extends Service {
         super.onDestroy();
         log.debug("Destroying service...");
         queueWorkerThread.interrupt();
+        EventBus.getDefault().unregister(this);
         log.debug("Service destroyed.");
     }
 
@@ -186,6 +194,10 @@ public class ObdBluetoothService extends Service {
 
             if (job != null) {
                 final ObdCommandJob job2 = job;
+
+                ObdJobEvent obdJobEvent = new ObdJobEvent();
+                obdJobEvent.setObdCommandJob(job2);
+                EventBus.getDefault().post(obdJobEvent);
 //                ((MainActivity) getApplicationContext()).runOnUiThread(new Runnable() {
 //                    @Override
 //                    public void run() {
