@@ -16,16 +16,16 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.github.pires.obd.commands.SpeedCommand;
 import com.hannesdorfmann.mosby3.mvp.MvpActivity;
-
-import org.greenrobot.eventbus.EventBus;
 
 import javax.inject.Inject;
 
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.pk.obdtracker.MyApp;
 import pl.edu.pk.obdtracker.R;
-import pl.edu.pk.obdtracker.bluetooth.ObdBluetoothService;
+import pl.edu.pk.obdtracker.obd.ObdCommandJob;
+import pl.edu.pk.obdtracker.obd.concurrency.ObdBluetoothService;
 
 @Slf4j
 public class MainActivity extends MvpActivity<MainView, MainPresenter>
@@ -33,6 +33,9 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter>
 
     @Inject
     SharedPreferences sharedPreferences;
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,8 +51,6 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter>
             public void onClick(View view) {
                 if (getPresenter().isServiceBound()) {
                     getPresenter().bluetoothConnect();
-                    new Handler().post(getPresenter().getDataThreadQueue());
-
                 } else {
                     Snackbar.make(view, "Obd bluetooth service not bound yet", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();

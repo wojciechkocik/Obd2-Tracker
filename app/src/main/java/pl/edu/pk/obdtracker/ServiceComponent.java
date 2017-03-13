@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 import javax.inject.Singleton;
 
 import dagger.Component;
-import pl.edu.pk.obdtracker.bluetooth.ObdBluetoothService;
+import pl.edu.pk.obdtracker.obd.concurrency.ObdBluetoothService;
 
 /**
  * @author Wojciech Kocik

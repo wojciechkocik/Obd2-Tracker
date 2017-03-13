@@ -24,7 +24,7 @@
         </activity>
 
         <service
-            android:name=".bluetooth.ObdBluetoothService"
+            android:name=".obd.concurrency.ObdBluetoothService"
             android:launchMode="singleInstance"
             android:exported="false" />
 

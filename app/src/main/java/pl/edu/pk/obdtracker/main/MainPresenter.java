@@ -5,11 +5,7 @@ import android.bluetooth.BluetoothDevice;
 import android.content.ComponentName;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.os.Handler;
 import android.os.IBinder;
-
-import com.github.pires.obd.commands.SpeedCommand;
-import com.hannesdorfmann.mosby3.mvp.MvpBasePresenter;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -21,9 +17,8 @@ import javax.inject.Inject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.pk.obdtracker.MvpAvareBasePresenter;
-import pl.edu.pk.obdtracker.bluetooth.ObdBluetoothService;
 import pl.edu.pk.obdtracker.event.ObdJobEvent;
-import pl.edu.pk.obdtracker.obd.ObdCommandJob;
+import pl.edu.pk.obdtracker.obd.concurrency.ObdBluetoothService;
 
 /**
  * @author Wojciech Kocik
@@ -32,30 +27,17 @@ import pl.edu.pk.obdtracker.obd.ObdCommandJob;
 
 @Slf4j
 public class MainPresenter extends MvpAvareBasePresenter<MainView> {
-    private static final long OBD_UPDATE_PERIOD = 1;
     private final SharedPreferences sharedPreferences;
 
     @Getter
     private boolean isServiceBound;
 
+    @Getter
     private ObdBluetoothService obdBluetoothService;
 
     @Inject
     public MainPresenter(SharedPreferences sharedPreferences) {
         this.sharedPreferences = sharedPreferences;
-    }
-
-    @Getter
-    private final Runnable dataThreadQueue = new Runnable() {
-        @Override
-        public void run() {
-            queueCommands();
-            new Handler().postDelayed(dataThreadQueue, OBD_UPDATE_PERIOD);
-        }
-    };
-
-    private void queueCommands() {
-        obdBluetoothService.queueJob(new ObdCommandJob(new SpeedCommand()));
     }
 
     public ServiceConnection serviceConnection() {
@@ -100,5 +82,4 @@ public class MainPresenter extends MvpAvareBasePresenter<MainView> {
     public void onObdJob(ObdJobEvent obdJobEvent) {
         log.info(obdJobEvent.getObdCommandJob().getObdCommand().getFormattedResult());
     }
-
 }
