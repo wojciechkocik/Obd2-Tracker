@@ -18,13 +18,6 @@ import pl.edu.pk.obdtracker.main.MainPresenter;
 @Module
 public class MvpModule {
 
-//    @Provides
-//    @Singleton
-//        // Application reference must come from AppModule.class
-//    SharedPreferences providesSharedPreferences(Application application) {
-//        return PreferenceManager.getDefaultSharedPreferences(application);
-//    }
-
     @Singleton
     @Provides
     MainPresenter providesMainPresenter(SharedPreferences sharedPreferences){

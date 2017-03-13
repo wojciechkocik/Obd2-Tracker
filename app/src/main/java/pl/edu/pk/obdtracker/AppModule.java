@@ -8,7 +8,6 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
-import pl.edu.pk.obdtracker.main.MainPresenter;
 
 /**
  * @author Wojciech Kocik
@@ -24,7 +23,6 @@ public class AppModule {
         mApplication = application;
     }
 
-
     @Provides
     @Singleton
     Application providesApplication() {
@@ -33,15 +31,8 @@ public class AppModule {
 
     @Provides
     @Singleton
-        // Application reference must come from AppModule.class
     SharedPreferences providesSharedPreferences(Application application) {
         return PreferenceManager.getDefaultSharedPreferences(application);
     }
-
-//    @Provides
-//    @Singleton
-//    static MainPresenter provideMainPresenter(SharedPreferences sharedPreferences){
-//        return new MainPresenter(sharedPreferences);
-//    }
 
 }

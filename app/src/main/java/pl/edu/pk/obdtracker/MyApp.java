@@ -2,9 +2,7 @@ package pl.edu.pk.obdtracker;
 
 import android.app.Application;
 
-import javax.inject.Inject;
-
-import pl.edu.pk.obdtracker.main.MainPresenter;
+import lombok.Getter;
 
 /**
  * @author Wojciech Kocik
@@ -13,7 +11,11 @@ import pl.edu.pk.obdtracker.main.MainPresenter;
 
 public class MyApp extends Application {
 
+    @Getter
     private MvpComponent mvpComponent;
+
+    @Getter
+    private ServiceComponent serviceComponent;
 
     private MvpModule mvpModule;
 
@@ -21,17 +23,18 @@ public class MyApp extends Application {
         super.onCreate();
 
         mvpModule = new MvpModule();
+        BluetoothModule bluetoothModule = new BluetoothModule();
+        AppModule appModule = new AppModule(this);
+
         mvpComponent = DaggerMvpComponent.builder()
-                .appModule(new AppModule(this))
+                .appModule(appModule)
                 .mvpModule(mvpModule)
+                .bluetoothModule(bluetoothModule)
                 .build();
-    }
 
-    public MvpModule getMvpModule(){
-        return mvpModule;
-    }
-
-    public MvpComponent getMvpComponent(){
-        return mvpComponent;
+        serviceComponent = DaggerServiceComponent.builder()
+                .appModule(appModule)
+                .bluetoothModule(bluetoothModule)
+                .build();
     }
 }

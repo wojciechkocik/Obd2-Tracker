@@ -3,6 +3,7 @@ package pl.edu.pk.obdtracker.main;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -19,6 +20,8 @@ import android.view.MenuItem;
 
 import com.hannesdorfmann.mosby3.mvp.MvpActivity;
 
+import javax.inject.Inject;
+
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.pk.obdtracker.MyApp;
 import pl.edu.pk.obdtracker.R;
@@ -28,12 +31,13 @@ import pl.edu.pk.obdtracker.bluetooth.ObdBluetoothService;
 public class MainActivity extends MvpActivity<MainView, MainPresenter>
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    @Inject
+    SharedPreferences sharedPreferences;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-//        ((MyApp)getApplication()).getMvpComponent().inject(this);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -42,8 +46,12 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter>
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+            if (getPresenter().isServiceBound()) {
+                getPresenter().bluetoothConnect();
+            } else {
+                Snackbar.make(view, "Obd bluetooth service not bound yet", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
+            }
             }
         });
 
@@ -57,26 +65,13 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter>
         navigationView.setNavigationItemSelectedListener(this);
 
         Intent obdBluetoothServiceIntent = new Intent(this, ObdBluetoothService.class);
-        bindService(obdBluetoothServiceIntent, new ServiceConnection() {
-            @Override
-            public void onServiceConnected(ComponentName name, IBinder service) {
-                log.info(name.toString() + " service is bound");
-                //ObdBluetoothService bluetoothService = (ObdBluetoothService) service;
-
-//                BluetoothManager.connect()
-            }
-
-            @Override
-            public void onServiceDisconnected(ComponentName name) {
-                log.info(name.toString() + " service is unbound");
-            }
-        }, BIND_AUTO_CREATE);
+        bindService(obdBluetoothServiceIntent, getPresenter().serviceConnection(), BIND_AUTO_CREATE);
     }
 
     @NonNull
     @Override
     public MainPresenter createPresenter() {
-        return ((MyApp)getApplication()).getMvpComponent().mainPresenter();
+        return ((MyApp) getApplication()).getMvpComponent().mainPresenter();
     }
 
     @Override
