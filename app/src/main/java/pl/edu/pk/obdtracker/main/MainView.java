@@ -1,11 +1,22 @@
 package pl.edu.pk.obdtracker.main;
 
+import android.bluetooth.BluetoothDevice;
+
 import com.hannesdorfmann.mosby3.mvp.MvpView;
+
+import pl.edu.pk.obdtracker.dialog.ChooseBtDeviceDialogFragment;
 
 /**
  * @author Wojciech Kocik
  * @since 12.03.2017
  */
 
-public class MainView implements MvpView {
+interface MainView extends MvpView {
+    void showChooseBtDeviceDialog(ChooseBtDeviceDialogFragment.BluetoothDeviceListener listener);
+
+    void showRetrievingBtDeviceProgress();
+
+    void hideRetrievingBtDeviceProgress();
+
+    void setSelectedDeviceInformation(BluetoothDevice bluetoothDevice);
 }

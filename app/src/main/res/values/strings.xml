@@ -6,4 +6,7 @@
 
     <string name="action_settings">Settings</string>
     <string name="text_bluetooth_nodevice">No bluetooth device selected</string>
+    <string name="choose_bt_device">Wybierz urządzenie</string>
+    <string name="please_wait">Proszę czekać...</string>
+    <string name="setting_bt_device">Ustawianie urządzenia bluetooth</string>
 </resources>

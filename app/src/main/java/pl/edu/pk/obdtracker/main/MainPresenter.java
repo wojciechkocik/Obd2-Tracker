@@ -1,6 +1,5 @@
 package pl.edu.pk.obdtracker.main;
 
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.ComponentName;
 import android.content.ServiceConnection;
@@ -17,6 +16,7 @@ import javax.inject.Inject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.pk.obdtracker.MvpAvareBasePresenter;
+import pl.edu.pk.obdtracker.dialog.ChooseBtDeviceDialogFragment;
 import pl.edu.pk.obdtracker.event.ObdJobEvent;
 import pl.edu.pk.obdtracker.obd.concurrency.ObdBluetoothService;
 
@@ -27,13 +27,16 @@ import pl.edu.pk.obdtracker.obd.concurrency.ObdBluetoothService;
 
 @Slf4j
 public class MainPresenter extends MvpAvareBasePresenter<MainView> {
+
     private final SharedPreferences sharedPreferences;
 
     @Getter
     private boolean isServiceBound;
 
     @Getter
-    private ObdBluetoothService obdBluetoothService;
+    private ObdBluetoothService mObdBluetoothService;
+
+    private BluetoothDevice mBluetoothDevice;
 
     @Inject
     public MainPresenter(SharedPreferences sharedPreferences) {
@@ -46,9 +49,7 @@ public class MainPresenter extends MvpAvareBasePresenter<MainView> {
             public void onServiceConnected(ComponentName name, IBinder service) {
                 log.info(name.toString() + " service is bound");
                 isServiceBound = true;
-                obdBluetoothService = ((ObdBluetoothService.ObdBluetoothServiceBinder) service).getService();
-                BluetoothDevice bluetoothDevice = retrieveBluetoothDevice();
-                obdBluetoothService.setBluetoothDevice(bluetoothDevice);
+                mObdBluetoothService = ((ObdBluetoothService.ObdBluetoothServiceBinder) service).getService();
             }
 
             @Override
@@ -59,20 +60,27 @@ public class MainPresenter extends MvpAvareBasePresenter<MainView> {
         return serviceConnection;
     }
 
-    private BluetoothDevice retrieveBluetoothDevice() {
-        final BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (((BluetoothDevice) btAdapter.getBondedDevices().toArray()[2]).getName().equals("KOTMSI")) {
-            BluetoothDevice bluetoothDevice = (BluetoothDevice) btAdapter.getBondedDevices().toArray()[2];
-            return bluetoothDevice;
+    public void retrieveBluetoothDevice() {
 
-        }
-        return null;
-        //TODO: selecting device
+        getView().showRetrievingBtDeviceProgress();
+
+        getView().showChooseBtDeviceDialog(new ChooseBtDeviceDialogFragment.BluetoothDeviceListener() {
+            @Override
+            public void onDeviceChoose(BluetoothDevice bluetoothDevice) {
+                log.info("Choose {} device, id: {}", bluetoothDevice.getName());
+                mBluetoothDevice = bluetoothDevice;
+                getView().hideRetrievingBtDeviceProgress();
+
+                getView().setSelectedDeviceInformation(bluetoothDevice);
+
+            }
+        });
     }
 
     public void bluetoothConnect() {
         try {
-            obdBluetoothService.startService();
+            mObdBluetoothService.setBluetoothDevice(mBluetoothDevice);
+            mObdBluetoothService.startService();
         } catch (IOException e) {
             log.error("Unsuccessful connection with bluetooth device.");
         }

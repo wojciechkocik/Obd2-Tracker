@@ -1,9 +1,10 @@
 package pl.edu.pk.obdtracker.main;
 
+import android.app.ProgressDialog;
+import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -16,7 +17,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.github.pires.obd.commands.SpeedCommand;
 import com.hannesdorfmann.mosby3.mvp.MvpActivity;
 
 import javax.inject.Inject;
@@ -24,18 +24,21 @@ import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.pk.obdtracker.MyApp;
 import pl.edu.pk.obdtracker.R;
-import pl.edu.pk.obdtracker.obd.ObdCommandJob;
+import pl.edu.pk.obdtracker.dialog.ChooseBtDeviceDialogFragment;
 import pl.edu.pk.obdtracker.obd.concurrency.ObdBluetoothService;
 
 @Slf4j
 public class MainActivity extends MvpActivity<MainView, MainPresenter>
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, MainView {
+
+    private static final String TAG = MainActivity.class.getSimpleName();
 
     @Inject
     SharedPreferences sharedPreferences;
 
 
 
+    private ProgressDialog mSettingBtDeviceProgressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +66,9 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter>
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
+
+        mSettingBtDeviceProgressDialog = new ProgressDialog(this);
+        mSettingBtDeviceProgressDialog.setMessage(getString(R.string.setting_bt_device));
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
@@ -115,18 +121,8 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter>
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+        if (id == R.id.nav_bluetooth_connect) {
+            getPresenter().retrieveBluetoothDevice();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -137,5 +133,28 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter>
     @Override
     protected void onStop() {
         super.onStop();
+    }
+
+    @Override
+    public void showChooseBtDeviceDialog(ChooseBtDeviceDialogFragment.BluetoothDeviceListener listener) {
+        ChooseBtDeviceDialogFragment chooseBtDeviceDialogFragment = new ChooseBtDeviceDialogFragment();
+        chooseBtDeviceDialogFragment.setListener(listener);
+        chooseBtDeviceDialogFragment.show(getFragmentManager(), TAG);
+
+    }
+
+    @Override
+    public void showRetrievingBtDeviceProgress() {
+         mSettingBtDeviceProgressDialog.show();
+    }
+
+    @Override
+    public void hideRetrievingBtDeviceProgress() {
+        mSettingBtDeviceProgressDialog.hide();
+    }
+
+    @Override
+    public void setSelectedDeviceInformation(BluetoothDevice bluetoothDevice) {
+
     }
 }
