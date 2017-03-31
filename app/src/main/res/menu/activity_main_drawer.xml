@@ -3,9 +3,9 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_bluetooth_connect"
+            android:id="@+id/nav_bluetooth_choose"
             android:icon="@drawable/ic_bluetooth_connected_black_24dp"
-            android:title="Connect OBDII" />
+            android:title="@string/choose_obdii_device" />
         <!--<item-->
             <!--android:id="@+id/nav_gallery"-->
             <!--android:icon="@drawable/ic_menu_gallery"-->

@@ -19,4 +19,10 @@ interface MainView extends MvpView {
     void hideRetrievingBtDeviceProgress();
 
     void setSelectedDeviceInformation(BluetoothDevice bluetoothDevice);
+
+    void showUnsuccessfulConnectionInfo();
+
+    void changeTextAndHandlerForNavBtConnectionStop();
+
+    void setInitMessageForChoosingDevice();
 }

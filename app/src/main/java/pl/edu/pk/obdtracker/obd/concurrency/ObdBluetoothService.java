@@ -68,7 +68,7 @@ public class ObdBluetoothService extends Service implements BluetoothReaderObser
 
         sharedPreferences = ((MyApp) getApplication()).getServiceComponent().sharedPreferences();
 
-        producerExecutorService = new ScheduledThreadPoolExecutor(1);
+
         obdCommandsProducer = new ObdCommandsProducer(jobsQueue);
     }
 
@@ -93,8 +93,9 @@ public class ObdBluetoothService extends Service implements BluetoothReaderObser
         try {
             socket = startBluetoothConnection(bluetoothDevice);
             ObdCommandsConsumer obdCommandsConsumer = new ObdCommandsConsumer(this, jobsQueue);
-            new Handler().post(obdCommandsConsumer);
+            obdCommandsConsumer.start();
             obdConnectionInit();
+            producerExecutorService = new ScheduledThreadPoolExecutor(1);
             producerExecutorService.scheduleAtFixedRate(obdCommandsProducer, 0, 1, TimeUnit.SECONDS);
         } catch (Exception e) {
             log.error(
@@ -171,6 +172,7 @@ public class ObdBluetoothService extends Service implements BluetoothReaderObser
 //        notificationManager.cancel(NOTIFICATION_ID);
         jobsQueue.clear();
         isRunning = false;
+        producerExecutorService.shutdown();
 
         if (socket != null)
             // close socket

@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.BaseTransientBottomBar;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -16,11 +17,14 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 
 import com.hannesdorfmann.mosby3.mvp.MvpActivity;
 
 import javax.inject.Inject;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.pk.obdtracker.MyApp;
 import pl.edu.pk.obdtracker.R;
@@ -36,7 +40,17 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter>
     @Inject
     SharedPreferences sharedPreferences;
 
+    @BindView(R.id.connectedDeviceTextId)
+    TextView connectedDeviceTextView;
 
+    @BindView(R.id.nav_view)
+    NavigationView navView;
+
+    @BindView(R.id.drawer_layout)
+    DrawerLayout drawer;
+
+    @BindView(R.id.toolbar)
+    Toolbar toolbar;
 
     private ProgressDialog mSettingBtDeviceProgressDialog;
 
@@ -45,23 +59,9 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter>
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        ButterKnife.bind(this);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (getPresenter().isServiceBound()) {
-                    getPresenter().bluetoothConnect();
-                } else {
-                    Snackbar.make(view, "Obd bluetooth service not bound yet", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
-                }
-            }
-        });
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
@@ -69,6 +69,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter>
 
         mSettingBtDeviceProgressDialog = new ProgressDialog(this);
         mSettingBtDeviceProgressDialog.setMessage(getString(R.string.setting_bt_device));
+        mSettingBtDeviceProgressDialog.setCancelable(false);
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
@@ -121,7 +122,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter>
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_bluetooth_connect) {
+        if (id == R.id.nav_bluetooth_choose) {
             getPresenter().retrieveBluetoothDevice();
         }
 
@@ -140,7 +141,6 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter>
         ChooseBtDeviceDialogFragment chooseBtDeviceDialogFragment = new ChooseBtDeviceDialogFragment();
         chooseBtDeviceDialogFragment.setListener(listener);
         chooseBtDeviceDialogFragment.show(getFragmentManager(), TAG);
-
     }
 
     @Override
@@ -150,11 +150,65 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter>
 
     @Override
     public void hideRetrievingBtDeviceProgress() {
-        mSettingBtDeviceProgressDialog.hide();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mSettingBtDeviceProgressDialog.hide();
+            }
+        });
     }
 
     @Override
-    public void setSelectedDeviceInformation(BluetoothDevice bluetoothDevice) {
+    public void setSelectedDeviceInformation(final BluetoothDevice bluetoothDevice) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                connectedDeviceTextView.setText(String.format("Selected device: %s", bluetoothDevice.getName()));
+            }
+        });
+    }
 
+    @Override
+    public void showUnsuccessfulConnectionInfo() {
+        Snackbar.make(getCurrentFocus(), "Bluetooth device connection error. Have you paired your device and the device is active?", BaseTransientBottomBar.LENGTH_INDEFINITE)
+        .show();
+    }
+
+    @Override
+    public void changeTextAndHandlerForNavBtConnectionStop() {
+        final MenuItem navBluetoothConnect = navView.getMenu().findItem(R.id.nav_bluetooth_choose);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                navBluetoothConnect.setTitle("Disconnect");
+                navBluetoothConnect.setChecked(false);
+                navBluetoothConnect.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        getPresenter().disconnectCurrentDevice();
+                        return true;
+                    }
+                });
+            }
+        });
+    }
+
+    @Override
+    public void setInitMessageForChoosingDevice() {
+        final MenuItem navBluetoothConnect = navView.getMenu().findItem(R.id.nav_bluetooth_choose);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                connectedDeviceTextView.setText(R.string.no_obdii_device_selected_select_your_device_from_menu);
+                navBluetoothConnect.setTitle(R.string.choose_obdii_device);
+                navBluetoothConnect.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        getPresenter().retrieveBluetoothDevice();
+                        return true;
+                    }
+                });
+            }
+        });
     }
 }

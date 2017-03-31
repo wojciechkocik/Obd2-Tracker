@@ -69,25 +69,42 @@ public class MainPresenter extends MvpAvareBasePresenter<MainView> {
             public void onDeviceChoose(BluetoothDevice bluetoothDevice) {
                 log.info("Choose {} device, id: {}", bluetoothDevice.getName());
                 mBluetoothDevice = bluetoothDevice;
-                getView().hideRetrievingBtDeviceProgress();
-
                 getView().setSelectedDeviceInformation(bluetoothDevice);
-
+                bluetoothConnect();
             }
         });
     }
 
     public void bluetoothConnect() {
-        try {
-            mObdBluetoothService.setBluetoothDevice(mBluetoothDevice);
-            mObdBluetoothService.startService();
-        } catch (IOException e) {
-            log.error("Unsuccessful connection with bluetooth device.");
-        }
+        new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                mObdBluetoothService.setBluetoothDevice(mBluetoothDevice);
+                try {
+                    mObdBluetoothService.startService();
+                    getView().changeTextAndHandlerForNavBtConnectionStop();
+                    getView().setSelectedDeviceInformation(mBluetoothDevice);
+                    getView().hideRetrievingBtDeviceProgress();
+                } catch (IOException e) {
+                    log.error("Unsuccessful connection with bluetooth device.");
+                    mObdBluetoothService.stopService();
+                    getView().changeTextAndHandlerForNavBtConnectionStop();
+                    getView().showUnsuccessfulConnectionInfo();
+                    getView().hideRetrievingBtDeviceProgress();
+                }
+            }
+        })
+        .start();
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
+    @Subscribe(threadMode = ThreadMode.BACKGROUND)
     public void onObdJob(ObdJobEvent obdJobEvent) {
         log.info(obdJobEvent.getObdCommandJob().getObdCommand().getFormattedResult());
+    }
+
+    public void disconnectCurrentDevice() {
+        mObdBluetoothService.stopService();
+        getView().setInitMessageForChoosingDevice();
     }
 }

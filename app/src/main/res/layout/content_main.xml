@@ -52,7 +52,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="18sp"
-                android:text="OBDII device not connected. Choose Your Device from menu."/>
+                android:text="@string/no_obdii_device_selected_select_your_device_from_menu"/>
 
         </LinearLayout>
 
