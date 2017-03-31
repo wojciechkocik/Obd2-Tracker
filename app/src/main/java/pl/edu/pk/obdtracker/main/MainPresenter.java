@@ -10,6 +10,8 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -98,8 +100,20 @@ public class MainPresenter extends MvpAvareBasePresenter<MainView> {
         .start();
     }
 
+    private Map<String, String> obdData = new HashMap<>();
+
     @Subscribe(threadMode = ThreadMode.BACKGROUND)
     public void onObdJob(ObdJobEvent obdJobEvent) {
+
+        String name = obdJobEvent.getObdCommandJob().getObdCommand().getName();
+        String formattedResult = obdJobEvent.getObdCommandJob().getObdCommand().getFormattedResult();
+
+        obdData.put(name, formattedResult);
+
+
+        getView().showObdData(obdData);
+
+
         log.info(obdJobEvent.getObdCommandJob().getObdCommand().getFormattedResult());
     }
 

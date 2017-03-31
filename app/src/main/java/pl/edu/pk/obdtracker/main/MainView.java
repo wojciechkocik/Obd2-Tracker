@@ -4,6 +4,8 @@ import android.bluetooth.BluetoothDevice;
 
 import com.hannesdorfmann.mosby3.mvp.MvpView;
 
+import java.util.Map;
+
 import pl.edu.pk.obdtracker.dialog.ChooseBtDeviceDialogFragment;
 
 /**
@@ -25,4 +27,6 @@ interface MainView extends MvpView {
     void changeTextAndHandlerForNavBtConnectionStop();
 
     void setInitMessageForChoosingDevice();
+
+    void showObdData(Map<String, String> obdData);
 }

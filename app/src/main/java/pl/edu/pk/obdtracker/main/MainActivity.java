@@ -17,9 +17,15 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.hannesdorfmann.mosby3.mvp.MvpActivity;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import javax.inject.Inject;
 
@@ -51,6 +57,9 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter>
 
     @BindView(R.id.toolbar)
     Toolbar toolbar;
+
+    @BindView(R.id.obd_data_layout)
+    LinearLayout obdDataLayout;
 
     private ProgressDialog mSettingBtDeviceProgressDialog;
 
@@ -210,5 +219,39 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter>
                 });
             }
         });
+    }
+
+
+    @Override
+    public void showObdData(final Map<String, String> obdData) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                for (Map.Entry<String, String> entry : obdData.entrySet()) {
+
+                    int hashCode = Math.abs(entry.getKey().hashCode());
+                    log.info(entry.getKey() + " hash: " + hashCode);
+                    TextView textView = (TextView) obdDataLayout.findViewById(hashCode);
+
+
+                    if(textView == null){
+                        textView = new TextView(getApplicationContext());
+                        textView.setText(entry.getKey() + ": " + entry.getValue());
+                        textView.setId(hashCode);
+                        final TextView finalTextView = textView;
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                obdDataLayout.addView(finalTextView);
+                            }
+                        });
+                    }else {
+                        textView.setText(entry.getKey() + ": " + entry.getValue());
+                    }
+                }
+            }
+        });
+
+
     }
 }
