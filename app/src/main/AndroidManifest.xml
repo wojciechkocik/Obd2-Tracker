@@ -4,6 +4,9 @@
 
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.READ_LOGS" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:name=".MyApp"
@@ -26,7 +29,7 @@
         <service
             android:name=".obd.concurrency.ObdBluetoothService"
             android:launchMode="singleInstance"
-            android:exported="false" />
+            android:exported="false"/>
 
     </application>
 

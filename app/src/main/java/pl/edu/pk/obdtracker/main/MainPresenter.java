@@ -10,6 +10,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,6 +51,7 @@ public class MainPresenter extends MvpAvareBasePresenter<MainView> {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
                 log.info(name.toString() + " service is bound");
+                getView().showServiceConnected();
                 isServiceBound = true;
                 mObdBluetoothService = ((ObdBluetoothService.ObdBluetoothServiceBinder) service).getService();
             }
@@ -57,6 +59,8 @@ public class MainPresenter extends MvpAvareBasePresenter<MainView> {
             @Override
             public void onServiceDisconnected(ComponentName name) {
                 log.info(name.toString() + " service is unbound");
+                getView().showServiceDisconnected();
+                isServiceBound = false;
             }
         };
         return serviceConnection;
@@ -77,6 +81,10 @@ public class MainPresenter extends MvpAvareBasePresenter<MainView> {
         });
     }
 
+    public void resetObd(){
+        mObdBluetoothService.resetObd();
+    }
+
     public void bluetoothConnect() {
         new Thread(new Runnable() {
 
@@ -94,6 +102,7 @@ public class MainPresenter extends MvpAvareBasePresenter<MainView> {
                     getView().changeTextAndHandlerForNavBtConnectionStop();
                     getView().showUnsuccessfulConnectionInfo();
                     getView().hideRetrievingBtDeviceProgress();
+                    getView().saveLogcatToFile();
                 }
             }
         })
@@ -108,11 +117,9 @@ public class MainPresenter extends MvpAvareBasePresenter<MainView> {
         String name = obdJobEvent.getObdCommandJob().getObdCommand().getName();
         String formattedResult = obdJobEvent.getObdCommandJob().getObdCommand().getFormattedResult();
 
-        obdData.put(name, formattedResult);
-
+        obdData.put(name, formattedResult  + "  :::  " + new Date().getTime());
 
         getView().showObdData(obdData);
-
 
         log.info(obdJobEvent.getObdCommandJob().getObdCommand().getFormattedResult());
     }
@@ -120,5 +127,6 @@ public class MainPresenter extends MvpAvareBasePresenter<MainView> {
     public void disconnectCurrentDevice() {
         mObdBluetoothService.stopService();
         getView().setInitMessageForChoosingDevice();
+        getView().saveLogcatToFile();
     }
 }

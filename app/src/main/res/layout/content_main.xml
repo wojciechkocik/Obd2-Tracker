@@ -54,6 +54,12 @@
                 android:textSize="18sp"
                 android:text="@string/no_obdii_device_selected_select_your_device_from_menu"/>
 
+            <Button
+                android:id="@+id/resetObdButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="resetOBD"/>
+
         </LinearLayout>
 
     </android.support.v7.widget.CardView>

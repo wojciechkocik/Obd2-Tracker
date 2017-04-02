@@ -28,5 +28,11 @@ interface MainView extends MvpView {
 
     void setInitMessageForChoosingDevice();
 
+    void saveLogcatToFile();
+
     void showObdData(Map<String, String> obdData);
+
+    void showServiceConnected();
+
+    void showServiceDisconnected();
 }
