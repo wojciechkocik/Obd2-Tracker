@@ -51,9 +51,17 @@ class ObdCommandsConsumer extends Thread {
                     log.debug("Job state is NEW. Run it..");
                     job.setObdCommandJobState(ObdCommandJob.ObdCommandJobState.RUNNING);
                     bluetoothReader.read(job);
+
+                    if (job != null) {
+                        final ObdCommandJob job2 = job;
+                        ObdJobEvent obdJobEvent = new ObdJobEvent();
+                        obdJobEvent.setObdCommandJob(job2);
+                        EventBus.getDefault().post(obdJobEvent);
+                    }
+
                 } else
                     // log not new job
-                    log.debug(
+                    log.info(
                             "Job state was not new, so it shouldn't be in queue. BUG ALERT!");
             } catch (InterruptedException i) {
                 Thread.currentThread().interrupt();
@@ -61,7 +69,7 @@ class ObdCommandsConsumer extends Thread {
                 if (job != null) {
                     job.setObdCommandJobState(ObdCommandJob.ObdCommandJobState.NOT_SUPPORTED);
                 }
-                log.debug("Command not supported. -> " + u.getMessage());
+                log.info("Command not supported. -> " + u.getMessage());
             } catch (IOException io) {
                 if (job != null) {
                     if (io.getMessage().contains("Broken pipe"))
@@ -69,20 +77,15 @@ class ObdCommandsConsumer extends Thread {
                     else
                         job.setObdCommandJobState(ObdCommandJob.ObdCommandJobState.EXECUTION_ERROR);
                 }
-                log.debug("IO error. -> " + io.getMessage());
+                log.info("IO error. -> " + io.getMessage());
             } catch (Exception e) {
                 if (job != null) {
                     job.setObdCommandJobState(ObdCommandJob.ObdCommandJobState.EXECUTION_ERROR);
                 }
-                log.debug("Failed to run command. -> " + e.getMessage());
+                log.info("Failed to run command. -> " + e.getMessage());
             }
 
-            if (job != null) {
-                final ObdCommandJob job2 = job;
-                ObdJobEvent obdJobEvent = new ObdJobEvent();
-                obdJobEvent.setObdCommandJob(job2);
-                EventBus.getDefault().post(obdJobEvent);
-            }
+
         }
     }
 }

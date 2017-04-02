@@ -14,6 +14,8 @@ import pl.edu.pk.obdtracker.dialog.ChooseBtDeviceDialogFragment;
  */
 
 interface MainView extends MvpView {
+    void setStartProducerButtonEnabled(boolean enabled);
+
     void showChooseBtDeviceDialog(ChooseBtDeviceDialogFragment.BluetoothDeviceListener listener);
 
     void showRetrievingBtDeviceProgress();

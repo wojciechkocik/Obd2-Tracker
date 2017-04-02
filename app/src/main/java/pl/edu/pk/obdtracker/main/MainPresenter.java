@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ScheduledExecutorService;
 
 import javax.inject.Inject;
 
@@ -32,6 +33,9 @@ import pl.edu.pk.obdtracker.obd.concurrency.ObdBluetoothService;
 public class MainPresenter extends MvpAvareBasePresenter<MainView> {
 
     private final SharedPreferences sharedPreferences;
+
+    @Getter
+    boolean isProducerRunning;
 
     @Getter
     private boolean isServiceBound;
@@ -81,7 +85,7 @@ public class MainPresenter extends MvpAvareBasePresenter<MainView> {
         });
     }
 
-    public void resetObd(){
+    public void resetObd() {
         mObdBluetoothService.resetObd();
     }
 
@@ -96,6 +100,7 @@ public class MainPresenter extends MvpAvareBasePresenter<MainView> {
                     getView().changeTextAndHandlerForNavBtConnectionStop();
                     getView().setSelectedDeviceInformation(mBluetoothDevice);
                     getView().hideRetrievingBtDeviceProgress();
+                    getView().setStartProducerButtonEnabled(true);
                 } catch (IOException e) {
                     log.error("Unsuccessful connection with bluetooth device.");
                     mObdBluetoothService.stopService();
@@ -106,7 +111,7 @@ public class MainPresenter extends MvpAvareBasePresenter<MainView> {
                 }
             }
         })
-        .start();
+                .start();
     }
 
     private Map<String, String> obdData = new HashMap<>();
@@ -115,18 +120,30 @@ public class MainPresenter extends MvpAvareBasePresenter<MainView> {
     public void onObdJob(ObdJobEvent obdJobEvent) {
 
         String name = obdJobEvent.getObdCommandJob().getObdCommand().getName();
-        String formattedResult = obdJobEvent.getObdCommandJob().getObdCommand().getFormattedResult();
+        String result = obdJobEvent.getObdCommandJob().getObdCommand().getResult();
 
-        obdData.put(name, formattedResult  + "  :::  " + new Date().getTime());
+        if(result == null){
 
-        getView().showObdData(obdData);
-
-        log.info(obdJobEvent.getObdCommandJob().getObdCommand().getFormattedResult());
+        }
+        else if (result.equals("NODATA")) {
+            log.debug(name + ": " + obdJobEvent.getObdCommandJob().getObdCommand().getResult());
+        } else {
+            String formattedResult = obdJobEvent.getObdCommandJob().getObdCommand().getFormattedResult();
+            log.info(name + ": " + formattedResult);
+            obdData.put(name, formattedResult + "  :::  " + new Date().getTime());
+            getView().showObdData(obdData);
+        }
     }
 
     public void disconnectCurrentDevice() {
+        isServiceBound = false;
         mObdBluetoothService.stopService();
         getView().setInitMessageForChoosingDevice();
         getView().saveLogcatToFile();
+    }
+
+    public void startObdQueueJobProducer(){
+        getMObdBluetoothService().startProducer();
+        isProducerRunning = true;
     }
 }

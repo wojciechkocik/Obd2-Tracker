@@ -1,38 +1,22 @@
 package pl.edu.pk.obdtracker.obd.concurrency;
 
-import android.Manifest;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Binder;
-import android.os.Build;
-import android.os.Environment;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.RemoteException;
-import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.util.Log;
 
 import com.github.pires.obd.commands.ObdCommand;
-import com.github.pires.obd.commands.control.DistanceMILOnCommand;
-import com.github.pires.obd.commands.control.DtcNumberCommand;
-import com.github.pires.obd.commands.control.EquivalentRatioCommand;
-import com.github.pires.obd.commands.control.ModuleVoltageCommand;
-import com.github.pires.obd.commands.control.TimingAdvanceCommand;
-import com.github.pires.obd.commands.control.TroubleCodesCommand;
 import com.github.pires.obd.commands.control.VinCommand;
+import com.github.pires.obd.commands.protocol.CloseCommand;
 import com.github.pires.obd.commands.protocol.EchoOffCommand;
 import com.github.pires.obd.commands.protocol.LineFeedOffCommand;
+import com.github.pires.obd.commands.protocol.ObdRawCommand;
 import com.github.pires.obd.commands.protocol.ObdResetCommand;
 import com.github.pires.obd.commands.protocol.SelectProtocolCommand;
 import com.github.pires.obd.commands.protocol.TimeoutCommand;
@@ -41,9 +25,7 @@ import com.github.pires.obd.enums.ObdProtocols;
 
 import org.greenrobot.eventbus.EventBus;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
@@ -53,7 +35,6 @@ import java.util.concurrent.TimeUnit;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.pk.obdtracker.Config;
-import pl.edu.pk.obdtracker.IAidlInterface;
 import pl.edu.pk.obdtracker.MyApp;
 import pl.edu.pk.obdtracker.R;
 import pl.edu.pk.obdtracker.bluetooth.BluetoothManager;
@@ -97,7 +78,7 @@ public class ObdBluetoothService extends Service implements BluetoothReaderObser
                     setContentText("Doing stuff in the background...")
                     .setContentIntent(pendingIntent)
                     .setSmallIcon(R.mipmap.ic_launcher).
-                    build();
+                            build();
         }
         startForeground(1, not);
 
@@ -126,6 +107,11 @@ public class ObdBluetoothService extends Service implements BluetoothReaderObser
 //        log.debug("Service destroyed.");
     }
 
+    public void startProducer(){
+        producerExecutorService = new ScheduledThreadPoolExecutor(1);
+        producerExecutorService.scheduleAtFixedRate(obdCommandsProducer, 0, 1, TimeUnit.SECONDS);
+    }
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -141,8 +127,6 @@ public class ObdBluetoothService extends Service implements BluetoothReaderObser
             ObdCommandsConsumer obdCommandsConsumer = new ObdCommandsConsumer(this, jobsQueue);
             obdCommandsConsumer.start();
             obdConnectionInit();
-            producerExecutorService = new ScheduledThreadPoolExecutor(1);
-            producerExecutorService.scheduleAtFixedRate(obdCommandsProducer, 0, 2, TimeUnit.SECONDS);
         } catch (Exception e) {
             log.error(
                     "There was an error while establishing connection. -> "
@@ -174,7 +158,7 @@ public class ObdBluetoothService extends Service implements BluetoothReaderObser
         return bluetoothSocket;
     }
 
-    public void resetObd(){
+    public void resetObd() {
         queueJob(new ObdResetCommand());
     }
 
@@ -182,9 +166,14 @@ public class ObdBluetoothService extends Service implements BluetoothReaderObser
         // Let's configure the connection.
         log.debug("Queueing jobs for connection configuration..");
 
+//        queueJob(new CloseCommand());
+//        queueJob(new ObdRawCommand("01 00"));
+
+//         queueJob(new ObdResetCommand());
+
         //Below is to give the adapter enough time to reset before sending the commands, otherwise the first startup commands could be ignored.
         try {
-            Thread.sleep(500);
+            Thread.sleep(4000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -199,7 +188,7 @@ public class ObdBluetoothService extends Service implements BluetoothReaderObser
      */
         queueJob(new EchoOffCommand());
         queueJob(new LineFeedOffCommand());
-        queueJob(new TimeoutCommand(62));
+//        queueJob(new TimeoutCommand(62));
 
         // Get protocol from preferences
         final String protocol = sharedPreferences.getString(Config.PROTOCOLS_LIST_KEY, "AUTO");
@@ -226,6 +215,17 @@ public class ObdBluetoothService extends Service implements BluetoothReaderObser
      */
     public void stopService() {
         log.debug("Stopping service..");
+
+
+        ObdCommandJob closeObdJob = new ObdCommandJob(new CloseCommand());
+        try {
+            read(closeObdJob);
+            log.info("Sent info about closed connection to obd device status: " +
+                    closeObdJob.getObdCommand().getFormattedResult()
+            );
+        }catch (Exception e) {
+            log.info("Failed to run command. -> " + e.getMessage());
+        }
 
 
 //        notificationManager.cancel(NOTIFICATION_ID);
