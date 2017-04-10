@@ -1,0 +1,35 @@
+buildscript {
+	ext {
+		springBootVersion = '1.5.2.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	compile('org.springframework.boot:spring-boot-starter')
+	compile("org.springframework.boot:spring-boot-starter-web")
+
+	//lombook
+	compileOnly "org.projectlombok:lombok:1.16.14"
+
+	//sl4j
+	compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+
+	testCompile('org.springframework.boot:spring-boot-starter-test')
+}
