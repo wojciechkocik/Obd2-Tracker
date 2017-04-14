@@ -32,7 +32,7 @@ dependencies {
 	compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
 
     //mongodb
-    compile 'org.springframework.data:spring-data-mongodb:1.10.1.RELEASE'
+    //compile 'org.springframework.data:spring-data-mongodb:1.10.1.RELEASE'
 
 	//rethinkdb driver
 	compile group: 'com.rethinkdb', name: 'rethinkdb-driver', version: '2.3.3'
