@@ -31,3 +31,6 @@ hs_err_pid*
 *.ipr
 
 application-test.properties
+
+node_modules
+bower_components
