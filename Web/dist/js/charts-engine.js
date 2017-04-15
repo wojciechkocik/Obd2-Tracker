@@ -43,7 +43,9 @@ var labels = [];
 var points = [];
 
 hz.connect();
-hz('points').watch().subscribe((docs) => {
+
+var id = getParameterByName("account");
+hz('points').watch({accountId: id}).subscribe((docs) => {
 
     //labels.push(docs.date);
 
@@ -58,3 +60,16 @@ hz('points').watch().subscribe((docs) => {
     myLineChart.data.datasets[0].data = points;
     myLineChart.update();
 });
+
+
+function getParameterByName(name, url) {
+    if (!url) {
+      url = window.location.href;
+    }
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
