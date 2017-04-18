@@ -34,13 +34,13 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import butterknife.BindView;
-import butterknife.BindViews;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.pk.obdtracker.MyApp;
 import pl.edu.pk.obdtracker.R;
 import pl.edu.pk.obdtracker.dialog.ChooseBtDeviceDialogFragment;
+import pl.edu.pk.obdtracker.dialog.GeneratedAccountIdDialog;
 import pl.edu.pk.obdtracker.obd.concurrency.ObdBluetoothService;
 
 @Slf4j
@@ -101,6 +101,10 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter>
             }
         });
 
+        if (getPresenter().getAccountId() == null) {
+            getPresenter().initAccount();
+        }
+
         mSettingBtDeviceProgressDialog = new ProgressDialog(this);
         mSettingBtDeviceProgressDialog.setMessage(getString(R.string.setting_bt_device));
         mSettingBtDeviceProgressDialog.setCancelable(false);
@@ -117,7 +121,7 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter>
                     1);
         }
 
-        if(getPresenter().isProducerRunning){
+        if (getPresenter().isProducerRunning) {
             setStartProducerButtonEnabled(true);
         }
 
@@ -195,6 +199,15 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter>
         return super.onOptionsItemSelected(item);
     }
 
+    public void shareWWWUrl() {
+        Intent sendIntent = new Intent();
+        sendIntent.setAction(Intent.ACTION_SEND);
+        String wwwUrl = getPresenter().getWWWUrl();
+        sendIntent.putExtra(Intent.EXTRA_TEXT, wwwUrl);
+        sendIntent.setType("text/plain");
+        startActivity(sendIntent);
+    }
+
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
@@ -202,9 +215,18 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter>
         int id = item.getItemId();
 
         if (id == R.id.nav_bluetooth_choose) {
-            Intent obdBluetoothServiceIntent = new Intent(this, ObdBluetoothService.class);
-            startService(obdBluetoothServiceIntent);
-            getPresenter().retrieveBluetoothDevice();
+            if(getPresenter().getAccountId() == null){
+                Snackbar.make(getCurrentFocus(), "Account Id isn't generated. Creating new account id...", BaseTransientBottomBar.LENGTH_LONG)
+                        .show();
+                getPresenter().initAccount();
+            }else {
+                Intent obdBluetoothServiceIntent = new Intent(this, ObdBluetoothService.class);
+                startService(obdBluetoothServiceIntent);
+                getPresenter().retrieveBluetoothDevice();
+            }
+
+        } else if (id == R.id.nav_share_www_url) {
+            shareWWWUrl();
         }
 
         drawer.closeDrawer(GravityCompat.START);
@@ -368,5 +390,22 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter>
     public void showServiceDisconnected() {
         Toast.makeText(this, "Obd Service Disconnected", Toast.LENGTH_LONG)
                 .show();
+    }
+
+    @Override
+    public void showGeneratedAccountIdInfo(String accountId) {
+        log.debug("Generated account id dialog: {}", accountId);
+        Toast.makeText(this, "Generated account id: " + accountId, Toast.LENGTH_LONG)
+                .show();
+    }
+
+    @Override
+    public void showGeneratingAccountIdProgress() {
+
+    }
+
+    @Override
+    public void hideGeneratingAccountIdProgress() {
+
     }
 }

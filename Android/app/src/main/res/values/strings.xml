@@ -11,4 +11,5 @@
     <string name="setting_bt_device">Ustawianie urządzenia bluetooth</string>
     <string name="choose_obdii_device">Choose OBDII device</string>
     <string name="no_obdii_device_selected_select_your_device_from_menu">no OBDII device selected. Select Your Device from menu.</string>
+    <string name="share_www_url">share WWW url</string>
 </resources>

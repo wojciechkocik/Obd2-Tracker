@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 import javax.inject.Singleton;
 
 import dagger.Component;
-import pl.edu.pk.obdtracker.api.DataStorageHttpService;
+import pl.edu.pk.obdtracker.api.HttpService;
 import pl.edu.pk.obdtracker.obd.concurrency.ObdBluetoothService;
 
 /**
@@ -16,12 +16,12 @@ import pl.edu.pk.obdtracker.obd.concurrency.ObdBluetoothService;
 @Singleton
 @Component(modules = {
         AppModule.class,
-        DataStorageHttpServiceModule.class
+        HttpServiceModule.class
 })
 public interface ServiceComponent {
     void inject(ObdBluetoothService obdBluetoothService);
 
     SharedPreferences sharedPreferences();
 
-    DataStorageHttpService dataStorageHttpService();
+    HttpService httpService();
 }

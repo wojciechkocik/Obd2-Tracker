@@ -1,4 +1,6 @@
 Chart.defaults.global.animation.duration = 0;
+Chart.defaults.global.legend.display = false;
+
 var ctx = [];
 var data = [];
 var myLineChart = [];
@@ -96,19 +98,25 @@ function addChart(chart) {
         type: 'line',
         data: data[chart],
         options: {
+            scales: {
+            xAxes: [{
+                ticks: {
+                    display: false
+                }
+            }]
+        }
         }
     });
 
 
 
-hz('points').findAll({ accountId: id, label: chart.trim() }).watch().subscribe((docs) => {
+hz('points').findAll({ accountId: id, label: chart.trim() }).order("epoch","descending").limit(50).watch().subscribe((docs) => {
 
         //labels.push(docs.date);
         console.log(docs)
 
-        labels[chart] = docs.map(d => d.epoch).slice(-100);
-        points[chart] = docs.map(d => d.value).slice(-100);
-
+        labels[chart] = docs.map(d => d.epoch).reverse();
+        points[chart] = docs.map(d => d.value).reverse();
 
         myLineChart[chart].data.labels = labels[chart];
         myLineChart[chart].data.datasets[0].data = points[chart];

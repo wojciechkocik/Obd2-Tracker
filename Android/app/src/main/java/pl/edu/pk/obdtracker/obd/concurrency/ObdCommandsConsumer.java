@@ -5,11 +5,10 @@ import com.github.pires.obd.exceptions.UnsupportedCommandException;
 import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.concurrent.BlockingQueue;
 
 import lombok.extern.slf4j.Slf4j;
-import pl.edu.pk.obdtracker.api.DataStorageHttpService;
+import pl.edu.pk.obdtracker.api.HttpService;
 import pl.edu.pk.obdtracker.api.model.ObdData;
 import pl.edu.pk.obdtracker.bluetooth.BluetoothReaderObserver;
 import pl.edu.pk.obdtracker.event.ObdJobEvent;
@@ -28,12 +27,14 @@ class ObdCommandsConsumer extends Thread {
 
     private BlockingQueue<ObdCommandJob> jobsQueue;
     private BluetoothReaderObserver bluetoothReader;
-    private DataStorageHttpService dataStorageHttpService;
+    private HttpService httpService;
+    private String accountId;
 
-    public ObdCommandsConsumer(BluetoothReaderObserver bluetoothReader, BlockingQueue<ObdCommandJob> jobsQueue, DataStorageHttpService dataStorageHttpService) {
+    public ObdCommandsConsumer(BluetoothReaderObserver bluetoothReader, BlockingQueue<ObdCommandJob> jobsQueue, HttpService httpService, String accountId) {
         this.bluetoothReader = bluetoothReader;
         this.jobsQueue = jobsQueue;
-        this.dataStorageHttpService = dataStorageHttpService;
+        this.httpService = httpService;
+        this.accountId = accountId;
     }
 
     @Override
@@ -72,7 +73,7 @@ class ObdCommandsConsumer extends Thread {
                         obdData.setLabel(name);
                         obdData.setValue(formattedResult);
                         obdData.setEpoch(System.currentTimeMillis());
-                        obdData.setAccountId("TODO");
+                        obdData.setAccountId(accountId);
                         storeObdData(obdData);
 
                         EventBus.getDefault().post(obdJobEvent);
@@ -109,7 +110,7 @@ class ObdCommandsConsumer extends Thread {
     }
 
     private void storeObdData(ObdData obdData) throws IOException {
-        Call<Void> voidCall = dataStorageHttpService.storeData(obdData);
+        Call<Void> voidCall = httpService.storeData(obdData);
         voidCall.enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {

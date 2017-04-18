@@ -6,6 +6,7 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import pl.edu.pk.obdtracker.api.HttpService;
 import pl.edu.pk.obdtracker.main.MainPresenter;
 
 /**
@@ -18,7 +19,7 @@ public class MvpModule {
 
     @Singleton
     @Provides
-    MainPresenter providesMainPresenter(SharedPreferences sharedPreferences){
-        return new MainPresenter(sharedPreferences);
+    MainPresenter providesMainPresenter(SharedPreferences sharedPreferences, HttpService httpService){
+        return new MainPresenter(sharedPreferences, httpService);
     }
 }

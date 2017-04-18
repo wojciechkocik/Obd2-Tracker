@@ -37,4 +37,10 @@ interface MainView extends MvpView {
     void showServiceConnected();
 
     void showServiceDisconnected();
+
+    void showGeneratedAccountIdInfo(String accountId);
+
+    void showGeneratingAccountIdProgress();
+
+    void hideGeneratingAccountIdProgress();
 }

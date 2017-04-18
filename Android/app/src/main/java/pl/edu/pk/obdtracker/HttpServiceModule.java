@@ -7,7 +7,7 @@ import javax.inject.Singleton;
 import dagger.Module;
 import dagger.Provides;
 import okhttp3.OkHttpClient;
-import pl.edu.pk.obdtracker.api.DataStorageHttpService;
+import pl.edu.pk.obdtracker.api.HttpService;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
@@ -16,20 +16,21 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
  */
 
 @Module
-public class DataStorageHttpServiceModule {
+public class HttpServiceModule {
 
-    @Provides
-    @Singleton
-    DataStorageHttpService providesDataStorageHttpService() {
-
+    private Retrofit retrofit(){
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("http://192.168.0.87:8080/")
                 .addConverterFactory(JacksonConverterFactory.create(new ObjectMapper()))
-                .client(builder.build())
                 .build();
+        return retrofit;
+    }
 
-        return retrofit.create(DataStorageHttpService.class);
+    @Provides
+    @Singleton
+    HttpService providesHttpService() {
+        return retrofit().create(HttpService.class);
     }
 
 }

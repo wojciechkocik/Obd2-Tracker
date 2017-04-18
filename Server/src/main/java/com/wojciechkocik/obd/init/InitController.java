@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Wojciech Kocik
  * @since 15.04.2017
  */
-@RestController("/init")
+@RestController("/account")
 public class InitController {
 
     private final AccountService accountService;
@@ -20,7 +20,9 @@ public class InitController {
     }
 
     @GetMapping
-    public String generateId() {
-        return accountService.generateId();
+    public InitResponse generateId() {
+        InitResponse initResponse = new InitResponse();
+        initResponse.setAccountId(accountService.generateId());
+        return initResponse;
     }
 }

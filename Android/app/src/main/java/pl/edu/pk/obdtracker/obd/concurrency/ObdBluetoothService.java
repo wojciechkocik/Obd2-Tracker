@@ -16,10 +16,8 @@ import com.github.pires.obd.commands.control.VinCommand;
 import com.github.pires.obd.commands.protocol.CloseCommand;
 import com.github.pires.obd.commands.protocol.EchoOffCommand;
 import com.github.pires.obd.commands.protocol.LineFeedOffCommand;
-import com.github.pires.obd.commands.protocol.ObdRawCommand;
 import com.github.pires.obd.commands.protocol.ObdResetCommand;
 import com.github.pires.obd.commands.protocol.SelectProtocolCommand;
-import com.github.pires.obd.commands.protocol.TimeoutCommand;
 import com.github.pires.obd.commands.temperature.AmbientAirTemperatureCommand;
 import com.github.pires.obd.enums.ObdProtocols;
 
@@ -39,15 +37,11 @@ import lombok.extern.slf4j.Slf4j;
 import pl.edu.pk.obdtracker.Config;
 import pl.edu.pk.obdtracker.MyApp;
 import pl.edu.pk.obdtracker.R;
-import pl.edu.pk.obdtracker.api.DataStorageHttpService;
-import pl.edu.pk.obdtracker.api.model.ObdData;
+import pl.edu.pk.obdtracker.api.HttpService;
 import pl.edu.pk.obdtracker.bluetooth.BluetoothManager;
 import pl.edu.pk.obdtracker.bluetooth.BluetoothReaderObserver;
 import pl.edu.pk.obdtracker.main.MainActivity;
 import pl.edu.pk.obdtracker.obd.ObdCommandJob;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 /**
  * @author Wojciech Kocik
@@ -67,7 +61,7 @@ public class ObdBluetoothService extends Service implements BluetoothReaderObser
     protected SharedPreferences sharedPreferences;
 
     @Inject
-    protected DataStorageHttpService dataStorageHttpService;
+    protected HttpService httpService;
 
     @Setter
     private BluetoothDevice bluetoothDevice;
@@ -131,10 +125,11 @@ public class ObdBluetoothService extends Service implements BluetoothReaderObser
     public void startService() throws IOException {
         log.info("Starting obd bluetooth service");
         final String remoteDevice = sharedPreferences.getString(Config.BLUETOOTH_LIST_KEY, null);
+        final String accountId = sharedPreferences.getString(Config.ACCOUNT_ID_KEY, null);
 
         try {
             socket = startBluetoothConnection(bluetoothDevice);
-            ObdCommandsConsumer obdCommandsConsumer = new ObdCommandsConsumer(this, jobsQueue, dataStorageHttpService);
+            ObdCommandsConsumer obdCommandsConsumer = new ObdCommandsConsumer(this, jobsQueue, httpService, accountId);
             obdCommandsConsumer.start();
             obdConnectionInit();
         } catch (Exception e) {

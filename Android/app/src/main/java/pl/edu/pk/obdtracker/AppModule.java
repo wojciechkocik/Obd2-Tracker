@@ -10,8 +10,6 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
-import pl.edu.pk.obdtracker.api.DataStorageHttpService;
-import retrofit2.Retrofit;
 
 /**
  * @author Wojciech Kocik

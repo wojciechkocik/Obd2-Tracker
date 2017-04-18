@@ -21,9 +21,6 @@ public class DataService {
 
     public void storeData(ObdData obdData) {
         log.info(obdData.toString());
-        if(obdData.getLabel().equals("Engine RPM")){
-            obdData.setLabel("rpm");
-        }
         dataRepository.store(obdData);
     }
 }

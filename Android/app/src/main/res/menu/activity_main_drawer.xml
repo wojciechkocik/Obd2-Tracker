@@ -6,10 +6,10 @@
             android:id="@+id/nav_bluetooth_choose"
             android:icon="@drawable/ic_bluetooth_connected_black_24dp"
             android:title="@string/choose_obdii_device" />
-        <!--<item-->
-            <!--android:id="@+id/nav_gallery"-->
-            <!--android:icon="@drawable/ic_menu_gallery"-->
-            <!--android:title="Gallery" />-->
+        <item
+            android:id="@+id/nav_share_www_url"
+            android:icon="@drawable/ic_menu_share"
+            android:title="@string/share_www_url" />
         <!--<item-->
             <!--android:id="@+id/nav_slideshow"-->
             <!--android:icon="@drawable/ic_menu_slideshow"-->
