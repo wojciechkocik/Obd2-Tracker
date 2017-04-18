@@ -19,24 +19,19 @@ public class MyApp extends Application {
     @Getter
     private ServiceComponent serviceComponent;
 
-    private MvpModule mvpModule;
-
     public void onCreate() {
         super.onCreate();
 
-        mvpModule = new MvpModule();
-        BluetoothModule bluetoothModule = new BluetoothModule();
+        MvpModule mvpModule = new MvpModule();
         AppModule appModule = new AppModule(this);
 
         mvpComponent = DaggerMvpComponent.builder()
                 .appModule(appModule)
                 .mvpModule(mvpModule)
-                .bluetoothModule(bluetoothModule)
                 .build();
 
         serviceComponent = DaggerServiceComponent.builder()
                 .appModule(appModule)
-                .bluetoothModule(bluetoothModule)
                 .build();
     }
 

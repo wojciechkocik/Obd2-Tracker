@@ -32,15 +32,22 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Inject;
+
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import pl.edu.pk.obdtracker.Config;
 import pl.edu.pk.obdtracker.MyApp;
 import pl.edu.pk.obdtracker.R;
+import pl.edu.pk.obdtracker.api.DataStorageHttpService;
+import pl.edu.pk.obdtracker.api.model.ObdData;
 import pl.edu.pk.obdtracker.bluetooth.BluetoothManager;
 import pl.edu.pk.obdtracker.bluetooth.BluetoothReaderObserver;
 import pl.edu.pk.obdtracker.main.MainActivity;
 import pl.edu.pk.obdtracker.obd.ObdCommandJob;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * @author Wojciech Kocik
@@ -56,7 +63,11 @@ public class ObdBluetoothService extends Service implements BluetoothReaderObser
 
     private boolean isRunning;
 
-    private SharedPreferences sharedPreferences;
+    @Inject
+    protected SharedPreferences sharedPreferences;
+
+    @Inject
+    protected DataStorageHttpService dataStorageHttpService;
 
     @Setter
     private BluetoothDevice bluetoothDevice;
@@ -71,16 +82,16 @@ public class ObdBluetoothService extends Service implements BluetoothReaderObser
         PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0,
                 activityIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        Notification not = null;
+        Notification backgroundNotification = null;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
-            not = new Notification.Builder(this).
+            backgroundNotification = new Notification.Builder(this).
                     setContentTitle(getText(R.string.app_name)).
                     setContentText("Doing stuff in the background...")
                     .setContentIntent(pendingIntent)
                     .setSmallIcon(R.mipmap.ic_launcher).
                             build();
         }
-        startForeground(1, not);
+        startForeground(1, backgroundNotification);
 
         return START_STICKY;
     }
@@ -93,8 +104,7 @@ public class ObdBluetoothService extends Service implements BluetoothReaderObser
         } catch (Exception ignored) {
         }
 
-        sharedPreferences = ((MyApp) getApplication()).getServiceComponent().sharedPreferences();
-
+        ((MyApp) getApplication()).getServiceComponent().inject(this);
 
         obdCommandsProducer = new ObdCommandsProducer(jobsQueue);
     }
@@ -124,7 +134,7 @@ public class ObdBluetoothService extends Service implements BluetoothReaderObser
 
         try {
             socket = startBluetoothConnection(bluetoothDevice);
-            ObdCommandsConsumer obdCommandsConsumer = new ObdCommandsConsumer(this, jobsQueue);
+            ObdCommandsConsumer obdCommandsConsumer = new ObdCommandsConsumer(this, jobsQueue, dataStorageHttpService);
             obdCommandsConsumer.start();
             obdConnectionInit();
         } catch (Exception e) {

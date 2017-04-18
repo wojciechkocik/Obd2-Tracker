@@ -1,10 +1,11 @@
-package com.wojciechkocik.obd.data;
+package pl.edu.pk.obdtracker.api.model;
 
 /**
- * @author Wojciech Kocik
- * @since 14.04.2017
+ * Created by Wojciech on 18.04.2017.
  */
+
 public class ObdData {
+
     private long epoch;
     private String label;
     private String value;

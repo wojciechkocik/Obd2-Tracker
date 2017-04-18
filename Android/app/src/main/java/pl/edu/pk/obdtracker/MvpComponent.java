@@ -12,7 +12,7 @@ import pl.edu.pk.obdtracker.main.MainPresenter;
  */
 
 @Singleton
-@Component(modules = {AppModule.class, MvpModule.class, BluetoothModule.class})
+@Component(modules = {AppModule.class, MvpModule.class})
 public interface MvpComponent {
     void inject(MainActivity activity);
     MainPresenter mainPresenter();

@@ -1,7 +1,6 @@
 package pl.edu.pk.obdtracker;
 
 import android.app.Application;
-import android.app.FragmentManager;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
@@ -11,6 +10,8 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import pl.edu.pk.obdtracker.api.DataStorageHttpService;
+import retrofit2.Retrofit;
 
 /**
  * @author Wojciech Kocik
@@ -40,7 +41,7 @@ public class AppModule {
 
     @Provides
     @Singleton
-    EventBus providesEventBus(MyApp application){
+    EventBus providesEventBus(MyApp application) {
         return EventBus.getDefault();
     }
 

@@ -19,7 +19,7 @@ public class RethinkConfiguration {
 
         Connection connection = RethinkDB.r.connection()
                 .hostname("localhost")
-                .port(51436)
+                .port(57787)
                 .connect();
 
         connection.use("example_app");

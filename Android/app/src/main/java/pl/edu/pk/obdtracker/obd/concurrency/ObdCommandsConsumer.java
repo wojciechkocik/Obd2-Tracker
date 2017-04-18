@@ -5,12 +5,18 @@ import com.github.pires.obd.exceptions.UnsupportedCommandException;
 import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.concurrent.BlockingQueue;
 
 import lombok.extern.slf4j.Slf4j;
+import pl.edu.pk.obdtracker.api.DataStorageHttpService;
+import pl.edu.pk.obdtracker.api.model.ObdData;
 import pl.edu.pk.obdtracker.bluetooth.BluetoothReaderObserver;
 import pl.edu.pk.obdtracker.event.ObdJobEvent;
 import pl.edu.pk.obdtracker.obd.ObdCommandJob;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * @author Wojciech Kocik
@@ -22,10 +28,12 @@ class ObdCommandsConsumer extends Thread {
 
     private BlockingQueue<ObdCommandJob> jobsQueue;
     private BluetoothReaderObserver bluetoothReader;
+    private DataStorageHttpService dataStorageHttpService;
 
-    public ObdCommandsConsumer(BluetoothReaderObserver bluetoothReader, BlockingQueue<ObdCommandJob> jobsQueue) {
+    public ObdCommandsConsumer(BluetoothReaderObserver bluetoothReader, BlockingQueue<ObdCommandJob> jobsQueue, DataStorageHttpService dataStorageHttpService) {
         this.bluetoothReader = bluetoothReader;
         this.jobsQueue = jobsQueue;
+        this.dataStorageHttpService = dataStorageHttpService;
     }
 
     @Override
@@ -56,6 +64,17 @@ class ObdCommandsConsumer extends Thread {
                         final ObdCommandJob job2 = job;
                         ObdJobEvent obdJobEvent = new ObdJobEvent();
                         obdJobEvent.setObdCommandJob(job2);
+
+                        String name = obdJobEvent.getObdCommandJob().getObdCommand().getName();
+                        String formattedResult = obdJobEvent.getObdCommandJob().getObdCommand().getCalculatedResult();
+
+                        ObdData obdData = new ObdData();
+                        obdData.setLabel(name);
+                        obdData.setValue(formattedResult);
+                        obdData.setEpoch(System.currentTimeMillis());
+                        obdData.setAccountId("TODO");
+                        storeObdData(obdData);
+
                         EventBus.getDefault().post(obdJobEvent);
                     }
 
@@ -84,8 +103,23 @@ class ObdCommandsConsumer extends Thread {
                 }
                 log.info("Failed to run command. -> " + e.getMessage());
             }
-
-
         }
+
+
+    }
+
+    private void storeObdData(ObdData obdData) throws IOException {
+        Call<Void> voidCall = dataStorageHttpService.storeData(obdData);
+        voidCall.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                log.error("Store data to http api error");
+            }
+        });
     }
 }
