@@ -5,6 +5,7 @@ import android.app.ProgressDialog;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -40,7 +41,6 @@ import lombok.extern.slf4j.Slf4j;
 import pl.edu.pk.obdtracker.MyApp;
 import pl.edu.pk.obdtracker.R;
 import pl.edu.pk.obdtracker.dialog.ChooseBtDeviceDialogFragment;
-import pl.edu.pk.obdtracker.dialog.GeneratedAccountIdDialog;
 import pl.edu.pk.obdtracker.obd.concurrency.ObdBluetoothService;
 
 @Slf4j
@@ -72,6 +72,12 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter>
 
     @BindView(R.id.drawer_layout)
     DrawerLayout drawer;
+
+    @OnClick(R.id.fab)
+    public void clickFloatingButton() {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(getPresenter().getWWWUrl()));
+        startActivity(intent);
+    }
 
     private ProgressDialog mSettingBtDeviceProgressDialog;
 
@@ -215,11 +221,11 @@ public class MainActivity extends MvpActivity<MainView, MainPresenter>
         int id = item.getItemId();
 
         if (id == R.id.nav_bluetooth_choose) {
-            if(getPresenter().getAccountId() == null){
+            if (getPresenter().getAccountId() == null) {
                 Snackbar.make(getCurrentFocus(), "Account Id isn't generated. Creating new account id...", BaseTransientBottomBar.LENGTH_LONG)
                         .show();
                 getPresenter().initAccount();
-            }else {
+            } else {
                 Intent obdBluetoothServiceIntent = new Intent(this, ObdBluetoothService.class);
                 startService(obdBluetoothServiceIntent);
                 getPresenter().retrieveBluetoothDevice();
